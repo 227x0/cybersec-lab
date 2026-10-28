@@ -1,0 +1,316 @@
+:root {
+  --bg: #0b0f19;
+  --surface: #111827;
+  --surface-2: #1f2937;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --accent: #22c55e;
+  --accent-dim: #14532d;
+  --danger: #ef4444;
+  --danger-dim: #7f1d1d;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+a { color: var(--accent); }
+
+.container {
+  width: min(960px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.hero {
+  background: linear-gradient(180deg, #0f172a 0%, var(--bg) 100%);
+  padding: 2.5rem 0 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--surface-2);
+}
+
+.hero h1 {
+  margin: 0 0 0.5rem;
+  font-size: 2.25rem;
+  letter-spacing: -0.02em;
+}
+
+.hero p {
+  margin: 0 auto;
+  max-width: 640px;
+  color: var(--muted);
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.tab {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--surface-2);
+  border-radius: 999px;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.tab:hover, .tab.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+main { padding: 2rem 0; }
+
+.lab { display: none; }
+.lab.active { display: block; animation: fadeIn 0.25s ease; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+h2 { margin: 0 0 0.25rem; font-size: 1.5rem; }
+
+.hint {
+  color: var(--muted);
+  margin: 0 0 1.25rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* Password Lab */
+input[type="text"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid #374151;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.meter {
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.meter-bar {
+  width: 0%;
+  height: 100%;
+  background: var(--danger);
+  transition: width 0.3s, background 0.3s;
+}
+
+.result { font-weight: 600; margin-bottom: 1rem; }
+
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.checklist li {
+  padding: 0.35rem 0;
+  color: var(--muted);
+}
+
+.checklist li.ok { color: var(--accent); }
+
+/* Phishing Lab */
+.email-card {
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.email-header span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--muted);
+}
+
+.email-header strong { color: var(--text); }
+
+.email-body {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--surface-2);
+}
+
+.email-body p { margin: 0 0 0.75rem; }
+
+.email-card [data-flag] {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0 2px;
+  transition: background 0.15s;
+}
+
+.email-card [data-flag]:hover {
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.email-card [data-flag].found {
+  background: rgba(34, 197, 94, 0.35);
+  outline: 1px dashed var(--accent);
+}
+
+.email-card [data-flag].missed {
+  background: rgba(239, 68, 68, 0.35);
+  outline: 1px dashed var(--danger);
+}
+
+.phish-link { color: var(--info); text-decoration: underline; }
+
+.email-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.btn-primary { background: var(--accent); color: #052e16; font-weight: 600; }
+.btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--surface-2); }
+
+.feedback {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: var(--surface-2);
+  white-space: pre-line;
+}
+
+/* Permissions Lab */
+.perms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.perm-group {
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.perm-group h3 { margin: 0 0 0.75rem; color: var(--accent); }
+
+.perm-bit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--surface-2);
+}
+
+.perm-bit:last-child { border-bottom: none; }
+
+.toggle {
+  appearance: none;
+  width: 44px;
+  height: 24px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  border: 1px solid #374151;
+}
+
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 18px; height: 18px;
+  background: var(--muted);
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle:checked {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.toggle:checked::after {
+  background: var(--accent);
+  transform: translateX(20px);
+}
+
+.result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.perm-mode {
+  display: flex;
+  gap: 1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.5rem;
+}
+
+.perm-mode span {
+  background: var(--surface-2);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.outcome { color: var(--muted); }
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 2rem 0;
+  border-top: 1px solid var(--surface-2);
+}
+
+@media (max-width: 480px) {
+  .hero h1 { font-size: 1.75rem; }
+  .tabs { flex-direction: column; align-items: center; }
+  .tab { width: 100%; max-width: 260px; }
+}
