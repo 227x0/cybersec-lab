@@ -2,7 +2,7 @@
 
 A beginner-friendly, hands-on cybersecurity lab built as a static website.
 
-**Live demo:** https://vl2007s.github.io/cybersec-lab/
+**Live demo:** https://227x0.github.io/cybersec-lab/
 
 ## Labs
 
@@ -23,7 +23,7 @@ Most beginner cybersec content is either too theoretical or a full CTF that thro
 ## Run locally
 
 ```bash
-git clone https://github.com/vl2007s/cybersec-lab.git
+git clone https://github.com/227x0/cybersec-lab.git
 cd cybersec-lab
 # open index.html in any browser, or:
 python -m http.server 8000
