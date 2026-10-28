@@ -104,7 +104,7 @@ h2 { margin: 0 0 0.25rem; font-size: 1.5rem; }
 }
 
 /* Password Lab */
-input[type="text"] {
+input[type="text"], select {
   width: 100%;
   padding: 0.75rem 1rem;
   font-size: 1rem;
@@ -115,10 +115,12 @@ input[type="text"] {
   margin-bottom: 1rem;
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus, select:focus {
   outline: none;
   border-color: var(--accent);
 }
+
+select { cursor: pointer; }
 
 .meter {
   height: 8px;
@@ -203,7 +205,7 @@ input[type="text"]:focus {
   margin-top: 1.25rem;
 }
 
-.btn-primary, .btn-secondary {
+.btn-primary, .btn-secondary, .btn-danger {
   padding: 0.6rem 1.2rem;
   border-radius: 8px;
   border: none;
@@ -213,6 +215,71 @@ input[type="text"]:focus {
 
 .btn-primary { background: var(--accent); color: #052e16; font-weight: 600; }
 .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--surface-2); }
+.btn-danger { background: var(--danger); color: #fff; font-weight: 600; }
+
+.alert-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.score { color: var(--accent); font-weight: 600; }
+
+.log-block {
+  background: #030712;
+  border: 1px solid var(--surface-2);
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  color: #d1d5db;
+  margin-bottom: 1rem;
+}
+
+.triage-actions { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+
+textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid #374151;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+textarea:focus { outline: none; border-color: var(--accent); }
+
+.header-summary { margin-bottom: 1rem; }
+.header-summary div { margin-bottom: 0.35rem; color: var(--muted); }
+.header-summary strong { color: var(--text); }
+
+.received-chain { margin: 0 0 1rem; padding-left: 1.25rem; }
+.received-chain li { margin-bottom: 0.5rem; color: var(--muted); }
+
+.ioc-form { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+.ioc-form select, .ioc-form input { margin: 0; flex: 1 1 160px; }
+.ioc-result .verdict { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem; }
+.ioc-result .verdict.benign { color: var(--accent); }
+.ioc-result .verdict.malicious { color: var(--danger); }
+.ioc-result .verdict.unknown { color: var(--warning); }
+.ioc-action { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--surface-2); }
+
+.mitre-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid #374151;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
 
 .feedback {
   margin-top: 1rem;
@@ -221,6 +288,9 @@ input[type="text"]:focus {
   background: var(--surface-2);
   white-space: pre-line;
 }
+
+.feedback.ok { background: var(--accent-dim); color: var(--accent); }
+.feedback.bad { background: var(--danger-dim); color: #fecaca; }
 
 /* Permissions Lab */
 .perms-grid {

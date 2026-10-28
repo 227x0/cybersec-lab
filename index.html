@@ -3,16 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SecurityOps 101 — Cybersecurity Lab for Beginners</title>
+  <title>SecurityOps 101 — SOC Analyst Training Lab</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="hero">
     <div class="container">
       <h1>SecurityOps 101</h1>
-      <p>A hands-on cybersecurity lab for beginners. Learn by doing, not by reading endless docs.</p>
+      <p>A hands-on training lab for future L1 SOC analysts: triage alerts, read email headers, check IOCs, and map incidents to MITRE ATT&CK.</p>
       <nav class="tabs" id="tabs" role="tablist">
-        <button class="tab active" data-tab="password" role="tab" aria-selected="true">Password Lab</button>
+        <button class="tab active" data-tab="triage" role="tab" aria-selected="true">SOC Triage</button>
+        <button class="tab" data-tab="headers" role="tab" aria-selected="false">Email Headers</button>
+        <button class="tab" data-tab="ioc" role="tab" aria-selected="false">IOC Lookup</button>
+        <button class="tab" data-tab="mitre" role="tab" aria-selected="false">MITRE Map</button>
+        <button class="tab" data-tab="password" role="tab" aria-selected="false">Password Lab</button>
         <button class="tab" data-tab="phishing" role="tab" aria-selected="false">Phishing Lab</button>
         <button class="tab" data-tab="permissions" role="tab" aria-selected="false">Permissions Lab</button>
       </nav>
@@ -20,8 +24,87 @@
   </header>
 
   <main class="container">
+    <!-- SOC Triage Simulator -->
+    <section id="triage" class="lab active">
+      <h2>SOC Alert Triage Simulator</h2>
+      <p class="hint">You are an L1 SOC analyst. Review the alert, read the logs, then decide: escalate to L2/IR or dismiss as noise.</p>
+      <div class="card">
+        <div class="alert-meta">
+          <span id="triageCounter">Alert 1 / 5</span>
+          <span id="triageScore" class="score">Score: 0</span>
+        </div>
+        <h3 id="triageTitle">Loading…</h3>
+        <p id="triageDesc"></p>
+        <div class="log-block" id="triageLogs"></div>
+        <div class="triage-actions">
+          <button id="btnEscalate" class="btn-danger">Escalate</button>
+          <button id="btnDismiss" class="btn-secondary">Dismiss</button>
+        </div>
+        <div id="triageFeedback" class="feedback" hidden></div>
+        <button id="btnNextAlert" class="btn-primary" hidden>Next alert</button>
+      </div>
+    </section>
+
+    <!-- Email Header Analyzer -->
+    <section id="headers" class="lab">
+      <h2>Email Header Analyzer</h2>
+      <p class="hint">Paste raw email headers below. The tool extracts the delivery path, SPF/DKIM/DMARC results, and flags common spoofing signs.</p>
+      <div class="card">
+        <textarea id="headerInput" rows="10" placeholder="Paste raw headers here (everything before the body)..."></textarea>
+        <button id="btnAnalyzeHeaders" class="btn-primary">Analyze headers</button>
+      </div>
+      <div id="headerOutput" class="card" hidden>
+        <h3>Parsed headers</h3>
+        <div id="headerSummary" class="header-summary"></div>
+        <h4>Received chain</h4>
+        <ol id="headerReceived" class="received-chain"></ol>
+        <h4>Findings</h4>
+        <ul id="headerFindings" class="checklist"></ul>
+      </div>
+    </section>
+
+    <!-- IOC Lookup -->
+    <section id="ioc" class="lab">
+      <h2>IOC Lookup Trainer</h2>
+      <p class="hint">Simulated threat-intel lookup. Enter an IP, domain, hash, or URL and practice reading a SOC verdict. (No real external lookup — training data only.)</p>
+      <div class="card ioc-form">
+        <select id="iocType">
+          <option value="ip">IPv4 address</option>
+          <option value="domain">Domain</option>
+          <option value="hash">File hash (SHA256)</option>
+          <option value="url">URL</option>
+        </select>
+        <input id="iocValue" type="text" placeholder="e.g. 203.0.113.42 or evil.com">
+        <button id="btnIocLookup" class="btn-primary">Lookup</button>
+      </div>
+      <div id="iocOutput" class="card ioc-result" hidden>
+        <div class="verdict" id="iocVerdict"></div>
+        <div id="iocDetails"></div>
+        <div id="iocAction" class="ioc-action"></div>
+      </div>
+    </section>
+
+    <!-- MITRE Map -->
+    <section id="mitre" class="lab">
+      <h2>MITRE ATT&CK Mapper</h2>
+      <p class="hint">Read the alert scenario and pick the most relevant MITRE technique. This is exactly what L1 analysts do when creating tickets for L2.</p>
+      <div class="card">
+        <div class="alert-meta">
+          <span id="mitreCounter">Scenario 1 / 4</span>
+          <span id="mitreScore" class="score">Score: 0</span>
+        </div>
+        <h3 id="mitreScenario">Loading…</h3>
+        <select id="mitreSelect" class="mitre-select">
+          <option value="">Select a technique…</option>
+        </select>
+        <button id="btnMitreSubmit" class="btn-primary">Submit</button>
+        <div id="mitreFeedback" class="feedback" hidden></div>
+        <button id="btnMitreNext" class="btn-secondary" hidden>Next scenario</button>
+      </div>
+    </section>
+
     <!-- Password Lab -->
-    <section id="password" class="lab active">
+    <section id="password" class="lab">
       <h2>Password Strength Lab</h2>
       <p class="hint">Type a password to see why length and variety matter. The check runs locally in your browser — we never send your real password.</p>
       <div class="card">
@@ -55,7 +138,6 @@
         </div>
         <div class="email-actions">
           <button id="checkPhish" class="btn-primary">Check my answer</button>
-          <button id="nextPhish" class="btn-secondary" hidden>Next email</button>
         </div>
         <div id="phishFeedback" class="feedback"></div>
       </div>
@@ -65,9 +147,7 @@
     <section id="permissions" class="lab">
       <h2>Linux Permissions Lab</h2>
       <p class="hint">Toggle read, write, and execute bits for owner, group, and others. See how the numeric mode and the real access outcome change.</p>
-      <div class="perms-grid" id="permsGrid">
-        <!-- Generated by JS -->
-      </div>
+      <div class="perms-grid" id="permsGrid"></div>
       <div class="card result-card">
         <div class="perm-mode">
           <span id="permNumeric">000</span>
@@ -79,9 +159,10 @@
   </main>
 
   <footer class="container">
-    <p>Built as a beginner-friendly cybersecurity portfolio project. <a href="https://github.com/227x0/cybersec-lab" target="_blank" rel="noopener">Source on GitHub</a>.</p>
+    <p>Built as a training project for aspiring L1 SOC analysts. <a href="https://github.com/227x0/cybersec-lab" target="_blank" rel="noopener">Source on GitHub</a>.</p>
   </footer>
 
   <script src="js/app.js"></script>
+  <script src="js/soc.js"></script>
 </body>
 </html>
