@@ -1,61 +1,240 @@
 (function () {
   "use strict";
 
+  /* ---------- Helpers ---------- */
+  function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+  function genIP() {
+    return randInt(1, 223) + "." + randInt(0, 255) + "." + randInt(0, 255) + "." + randInt(1, 254);
+  }
+  function genUser() { return rand(["jane.doe", "john.smith", "alice.wong", "bob.miller", "helpdesk", "admin", "mike.ross", "sara.connor"]); }
+  function genHost() { return rand(["DESKTOP-42", "LAPTOP-07", "SRV-WEB-01", "SRV-DB-02", "WKSTN-118", "MAIL-01", "DESKTOP-99"]); }
+  function genDomain() { return rand(["evil-c2.xyz", "phish-login.tk", "malware-drop.ru", "badsite.kp", "legit-corp.com", "github.com", "microsoft.com", "amazon.com"]); }
+  function genFile() { return rand(["invoice.docm", "salary.xlsx", "payment.pdf", "remittance.exe", "report.zip", "quotation.jar"]); }
+  function genPortList() { return rand(["22,3389,445", "80,443,8080", "1433,3306,5432", "21,23,25"]); }
+  function genTime() {
+    const h = String(randInt(0, 23)).padStart(2, "0");
+    const m = String(randInt(0, 59)).padStart(2, "0");
+    const s = String(randInt(0, 59)).padStart(2, "0");
+    return "2026-10-28 " + h + ":" + m + ":" + s;
+  }
+
   /* ---------- SOC Triage Simulator ---------- */
-  const ALERTS = [
-    {
-      title: "Successful login after brute force",
-      desc: "User jane.doe@company.com had 47 failed login attempts from 203.0.113.45, then one successful login from the same IP.",
-      logs: "2026-10-28 09:12:01 auth-fail user=jane.doe src=203.0.113.45\n" +
-            "2026-10-28 09:12:03 auth-fail user=jane.doe src=203.0.113.45\n" +
-            "... (45 more failures) ...\n" +
-            "2026-10-28 09:14:22 auth-success user=jane.doe src=203.0.113.45 mfa=none",
-      action: "escalate",
-      reason: "Pattern matches password spraying / brute-force followed by account compromise. Escalate for containment and forced password reset."
+  const BASE_ESCALATE = [
+    function () {
+      const ip = genIP();
+      const user = genUser();
+      const fails = randInt(12, 120);
+      return {
+        title: "Successful login after brute force",
+        desc: "User " + user + " had " + fails + " failed login attempts from " + ip + ", then one successful login.",
+        logs: genTime() + " auth-fail user=" + user + " src=" + ip + "\n... (" + fails + " failures) ...\n" +
+              genTime() + " auth-success user=" + user + " src=" + ip + " mfa=none",
+        action: "escalate",
+        reason: "Brute-force pattern followed by a successful authentication is a strong indicator of account compromise. Escalate for containment and password reset."
+      };
     },
-    {
-      title: "Scheduled backup completed",
-      desc: "The nightly database backup job ran successfully from the backup service account.",
-      logs: "2026-10-28 02:00:00 backup-job db-backup status=success duration=14m account=svc-backup",
-      action: "dismiss",
-      reason: "Expected scheduled maintenance. No security relevance."
+    function () {
+      const user = genUser();
+      const file = genFile();
+      return {
+        title: "Office app spawned PowerShell",
+        desc: "User " + user + " opened " + file + " from an external email; winword.exe immediately started an encoded PowerShell process.",
+        logs: genTime() + " process-create parent=winword.exe child=powershell.exe user=" + user + "\n" +
+              genTime() + " powershell cmd='powershell -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUA...'",
+        action: "escalate",
+        reason: "Office documents launching encoded PowerShell is a classic malware delivery chain. Escalate for host isolation and forensic imaging."
+      };
     },
-    {
-      title: "Office app spawned PowerShell",
-      desc: "User opened invoice.docm from an external email; winword.exe immediately started powershell.exe.",
-      logs: "2026-10-28 11:34:12 process-create parent=winword.exe child=powershell.exe user=bob cmd='powershell -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUA...'",
-      action: "escalate",
-      reason: "Office document spawning encoded PowerShell is a classic malware delivery chain. Escalate immediately for host isolation."
+    function () {
+      const host = genHost();
+      const count = randInt(20, 200);
+      return {
+        title: "DNS queries to DGA domains",
+        desc: "Endpoint " + host + " made " + count + " DNS queries to random-looking .xyz domains in a short window.",
+        logs: genTime() + " dns-query host=" + host + " name=qxk7f2b.xyz\n" +
+              genTime() + " dns-query host=" + host + " name=zz9plm4.xyz\n...",
+        action: "escalate",
+        reason: "High-volume queries to algorithmic domains suggest C2 beaconing. Escalate for host isolation and DNS forensics."
+      };
     },
-    {
-      title: "Inbound port scan blocked",
-      desc: "Firewall blocked ~2,000 SYN packets from 198.51.100.22 across SSH, RDP, and SMB ports.",
-      logs: "2026-10-28 13:10:00 firewall drop src=198.51.100.22 proto=tcp ports=22,3389,445 count=2000 action=blocked",
-      action: "dismiss",
-      reason: "Attack was blocked at the perimeter. No internal compromise indicated — log for trending, but no escalation needed."
+    function () {
+      const host = genHost();
+      const domain = rand(["evil-c2.xyz", "phish-login.tk", "badsite.kp"]);
+      return {
+        title: "Outbound connection to suspicious domain",
+        desc: "Host " + host + " established repeated HTTPS sessions to " + domain + " every 60 seconds.",
+        logs: genTime() + " proxy-allow src=" + host + " dst=" + domain + ":443 bytes=240\n" +
+              genTime() + " proxy-allow src=" + host + " dst=" + domain + ":443 bytes=260\n...",
+        action: "escalate",
+        reason: "Regular beaconing to a suspicious domain is characteristic of command-and-control traffic. Escalate for host containment."
+      };
     },
-    {
-      title: "DNS queries to DGA domains",
-      desc: "Endpoint DESKTOP-42 made 50 DNS queries to random-looking .xyz domains in two minutes.",
-      logs: "2026-10-28 15:22:10 dns-query host=DESKTOP-42 name=qxk7f2b.xyz\n" +
-            "2026-10-28 15:22:11 dns-query host=DESKTOP-42 name=zz9plm4.xyz\n" +
-            "...",
-      action: "escalate",
-      reason: "High-volume queries to algorithmic domains strongly suggest C2 beaconing. Escalate for host isolation and DNS forensics."
+    function () {
+      const user = genUser();
+      const domain = rand(["evil-c2.xyz", "malware-drop.ru", "phish-login.tk"]);
+      const file = genFile();
+      return {
+        title: "User downloaded executable from external site",
+        desc: "User " + user + " downloaded " + file + " from " + domain + " and executed it.",
+        logs: genTime() + " proxy-allow user=" + user + " url=http://" + domain + "/" + file + "\n" +
+              genTime() + " process-create user=" + user + " path=Downloads\\" + file,
+        action: "escalate",
+        reason: "Downloading and executing files from untrusted domains is a common malware vector. Escalate for endpoint investigation."
+      };
+    }
+  ];
+
+  const ADV_ESCALATE = [
+    function () {
+      const user = genUser();
+      return {
+        title: "New local administrator account",
+        desc: "User " + user + " created a new local account 'support_01' and added it to the Administrators group.",
+        logs: genTime() + " user-create user=" + user + " account=support_01\n" +
+              genTime() + " group-change user=" + user + " account=support_01 group=Administrators",
+        action: "escalate",
+        reason: "Unauthorized local admin creation is a persistence technique. Escalate for account review and possible incident response."
+      };
+    },
+    function () {
+      const host = genHost();
+      const ip = genIP();
+      return {
+        title: "Outbound SMB to external IP",
+        desc: "Host " + host + " attempted SMB file shares over port 445 to " + ip + ".",
+        logs: genTime() + " firewall-alert src=" + host + " dst=" + ip + ":445 proto=smb action=allowed bytes=12MB",
+        action: "escalate",
+        reason: "SMB to an external host is highly abnormal and may indicate data exfiltration. Escalate immediately."
+      };
+    },
+    function () {
+      const host = genHost();
+      return {
+        title: "LSASS memory access",
+        desc: "Process " + rand(["procdump.exe", "mimikatz.exe", "taskmgr.exe"]) + " accessed LSASS memory on " + host + ".",
+        logs: genTime() + " sensitive-access host=" + host + " target=lsass.exe source=" + rand(["procdump.exe", "mimikatz.exe"]),
+        action: "escalate",
+        reason: "LSASS access is a classic credential-dumping indicator. Escalate for host isolation and forensic collection."
+      };
+    },
+    function () {
+      const host = genHost();
+      const ip = genIP();
+      return {
+        title: "Firewall allowed inbound RDP",
+        desc: "Firewall allowed an inbound RDP session to " + host + " from " + ip + ".",
+        logs: genTime() + " firewall-allow src=" + ip + ":3389 dst=" + host + " proto=rdp action=allowed",
+        action: "escalate",
+        reason: "Inbound RDP from an external IP is a major exposure. Even if authenticated, escalate for access review."
+      };
+    }
+  ];
+
+  const BASE_DISMISS = [
+    function () {
+      return {
+        title: "Scheduled backup completed",
+        desc: "The nightly database backup job ran successfully from the backup service account.",
+        logs: genTime() + " backup-job db-backup status=success duration=" + randInt(5, 30) + "m account=svc-backup",
+        action: "dismiss",
+        reason: "Expected scheduled maintenance. No security relevance."
+      };
+    },
+    function () {
+      const ip = genIP();
+      const count = randInt(500, 5000);
+      return {
+        title: "Inbound port scan blocked",
+        desc: "Firewall blocked ~" + count + " SYN packets from " + ip + " across common ports.",
+        logs: genTime() + " firewall drop src=" + ip + " proto=tcp ports=" + genPortList() + " count=" + count + " action=blocked",
+        action: "dismiss",
+        reason: "Attack was blocked at the perimeter. No internal compromise indicated — log for trending, but no escalation needed."
+      };
+    },
+    function () {
+      const host = genHost();
+      return {
+        title: "Antivirus update success",
+        desc: "Endpoint " + host + " downloaded the latest antivirus definitions.",
+        logs: genTime() + " av-update host=" + host + " status=success signatures=20261028.001",
+        action: "dismiss",
+        reason: "Normal security hygiene event."
+      };
+    },
+    function () {
+      const user = genUser();
+      return {
+        title: "Successful login from known device",
+        desc: "User " + user + " logged in from a known device during business hours.",
+        logs: genTime() + " auth-success user=" + user + " src=10.0.1.42 device=trusted mfa=yes",
+        action: "dismiss",
+        reason: "Routine authentication with MFA from a trusted internal device."
+      };
+    },
+    function () {
+      const host = genHost();
+      return {
+        title: "High CPU on server",
+        desc: "Host " + host + " reported sustained CPU usage from a known backup indexing task.",
+        logs: genTime() + " perf-alert host=" + host + " process=backup-indexer cpu=92% duration=10m",
+        action: "dismiss",
+        reason: "Performance alert from a known legitimate process. Route to infrastructure team, not security."
+      };
+    }
+  ];
+
+  const ADV_DISMISS = [
+    function () {
+      const host = genHost();
+      return {
+        title: "Windows update installed",
+        desc: "Host " + host + " installed routine Windows security patches.",
+        logs: genTime() + " os-update host=" + host + " kb=KB5034441 status=success",
+        action: "dismiss",
+        reason: "Expected patch management activity."
+      };
+    },
+    function () {
+      const user = genUser();
+      return {
+        title: "User accessed internal file share",
+        desc: "User " + user + " opened a folder on the internal finance share.",
+        logs: genTime() + " file-access user=" + user + " path=\\\\fileserver\\finance\\reports src=10.0.1.15",
+        action: "dismiss",
+        reason: "Normal internal file access with no anomalous pattern."
+      };
     }
   ];
 
   let triageIndex = 0;
   let triageScore = 0;
+  let triageStreak = 0;
+  let triageBest = 0;
   let triageAnswered = false;
+  let currentAlert = null;
+
+  function getLevel() { return Math.floor(triageScore / 5) + 1; }
+
+  function generateAlert() {
+    const level = getLevel();
+    const escalatePool = BASE_ESCALATE.concat(level >= 2 ? ADV_ESCALATE : []);
+    const dismissPool = BASE_DISMISS.concat(level >= 2 ? ADV_DISMISS : []);
+    const pool = Math.random() < 0.5 ? escalatePool : dismissPool;
+    return rand(pool)();
+  }
 
   function renderTriage() {
-    const a = ALERTS[triageIndex];
-    document.getElementById("triageCounter").textContent = "Alert " + (triageIndex + 1) + " / " + ALERTS.length;
+    currentAlert = generateAlert();
+    triageIndex += 1;
+    document.getElementById("triageCounter").textContent = "Alert #" + triageIndex;
     document.getElementById("triageScore").textContent = "Score: " + triageScore;
-    document.getElementById("triageTitle").textContent = a.title;
-    document.getElementById("triageDesc").textContent = a.desc;
-    document.getElementById("triageLogs").textContent = a.logs;
+    document.getElementById("triageStreak").textContent = "Streak: " + triageStreak;
+    document.getElementById("triageHigh").textContent = "Best: " + triageBest;
+    document.getElementById("triageLevel").textContent = "Level " + getLevel();
+    document.getElementById("triageTitle").textContent = currentAlert.title;
+    document.getElementById("triageDesc").textContent = currentAlert.desc;
+    document.getElementById("triageLogs").textContent = currentAlert.logs;
     document.getElementById("triageFeedback").hidden = true;
     document.getElementById("btnNextAlert").hidden = true;
     document.getElementById("btnEscalate").disabled = false;
@@ -64,33 +243,32 @@
   }
 
   function answerTriage(action) {
-    if (triageAnswered) return;
+    if (triageAnswered || !currentAlert) return;
     triageAnswered = true;
-    const a = ALERTS[triageIndex];
-    const correct = action === a.action;
-    if (correct) triageScore += 1;
+    const correct = action === currentAlert.action;
+    if (correct) {
+      triageScore += 1;
+      triageStreak += 1;
+      if (triageStreak > triageBest) triageBest = triageStreak;
+    } else {
+      triageStreak = 0;
+    }
+
     const fb = document.getElementById("triageFeedback");
     fb.hidden = false;
     fb.className = "feedback " + (correct ? "ok" : "bad");
-    fb.textContent = (correct ? "Correct. " : "Not quite. ") + a.reason;
+    fb.textContent = (correct ? "Correct. " : "Not quite. ") + currentAlert.reason;
     document.getElementById("btnEscalate").disabled = true;
     document.getElementById("btnDismiss").disabled = true;
     document.getElementById("triageScore").textContent = "Score: " + triageScore;
+    document.getElementById("triageStreak").textContent = "Streak: " + triageStreak;
+    document.getElementById("triageHigh").textContent = "Best: " + triageBest;
+    document.getElementById("triageLevel").textContent = "Level " + getLevel();
 
     const next = document.getElementById("btnNextAlert");
-    if (triageIndex + 1 < ALERTS.length) {
-      next.hidden = false;
-      next.textContent = "Next alert";
-      next.onclick = function () { triageIndex += 1; renderTriage(); };
-    } else {
-      next.hidden = false;
-      next.textContent = "Finish";
-      next.onclick = function () {
-        fb.textContent = "Simulation complete. Final score: " + triageScore + " / " + ALERTS.length + ". " +
-          (triageScore === ALERTS.length ? "Solid L1 instincts." : "Review the missed cases and try again.");
-        next.hidden = true;
-      };
-    }
+    next.hidden = false;
+    next.textContent = "Next alert";
+    next.onclick = renderTriage;
   }
 
   document.getElementById("btnEscalate").addEventListener("click", function () { answerTriage("escalate"); });
@@ -224,7 +402,6 @@
 
     let rec = IOC_DB[type] && IOC_DB[type][value];
     if (!rec) {
-      // random-ish but stable verdict for unknowns
       const hash = value.split("").reduce(function (a, c) { return ((a << 5) - a) + c.charCodeAt(0) | 0; }, 0);
       const verdicts = ["benign", "benign", "unknown", "unknown", "malicious"];
       const v = verdicts[Math.abs(hash) % verdicts.length];

@@ -30,9 +30,12 @@
       <p class="hint">You are an L1 SOC analyst. Review the alert, read the logs, then decide: escalate to L2/IR or dismiss as noise.</p>
       <div class="card">
         <div class="alert-meta">
-          <span id="triageCounter">Alert 1 / 5</span>
+          <span id="triageCounter">Alert #1</span>
           <span id="triageScore" class="score">Score: 0</span>
+          <span id="triageStreak" class="score">Streak: 0</span>
+          <span id="triageHigh" class="score">Best: 0</span>
         </div>
+        <div id="triageLevel" class="level-pill">Level 1</div>
         <h3 id="triageTitle">Loading…</h3>
         <p id="triageDesc"></p>
         <div class="log-block" id="triageLogs"></div>
