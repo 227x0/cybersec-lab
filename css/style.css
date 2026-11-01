@@ -383,6 +383,47 @@ textarea:focus { outline: none; border-color: var(--accent); }
 
 .outcome { color: var(--muted); }
 
+.ioc-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ioc-chip {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid #374151;
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.ioc-chip:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ioc-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--surface-2);
+  border-radius: 8px;
+}
+
+.ioc-result .verdict {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.ioc-result .verdict.malicious { color: var(--danger); }
+.ioc-result .verdict.benign { color: var(--accent); }
+.ioc-result .verdict.unknown { color: var(--warning); }
+
 footer {
   text-align: center;
   color: var(--muted);

